@@ -107,6 +107,14 @@ class KVBase:
     def print(self):
         print(self.KV)
 
+    def reset(self,String):
+        self.Span = Span(0,0)
+        self.String = String
+        self.Len = len(String)
+        self.KV.clear()
+        self.Values.clear()
+        self.Keys.clear()
+
 
 class KVDefault(KVBase): 
     # initialise the class variables
@@ -114,6 +122,9 @@ class KVDefault(KVBase):
         self.String = Str
         self.Len = len(Str)
         self.Span = Span(0,0)
+        self.KV.clear()
+        self.Values.clear()
+        self.Keys.clear()
 
 class KVSep(KVBase):
     def __init__(self,Str,KSep,VSep):
@@ -122,6 +133,9 @@ class KVSep(KVBase):
         self.KSep = KSep
         self.VSep = VSep
         self.Span = Span(0,0)
+        self.KV.clear()
+        self.Values.clear()
+        self.Keys.clear()
 
 def test_span():
     sp = Span(5,10)
@@ -142,6 +156,10 @@ def test_parsers():
     # Test the parsers
     String = "satisfaction=good, name=Barry Robinson, employer=Northrup Grumman, asperation=principal engineer"
     P1 = KVDefault(String)
+    P1.run_parser()
+    P1.print()
+    String = "target=Moriarty, detective=Holms, assistant=Watson"
+    P1.reset(String)
     P1.run_parser()
     P1.print()
 
