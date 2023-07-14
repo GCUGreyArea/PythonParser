@@ -100,6 +100,22 @@ class KVBase:
         return self.Span.End
 
 
+    def decode_and_apply_entry(self,Dict,Key,Value):
+        K = None
+        V = None
+        if Key.isnumeric(): 
+            K = int(Key)
+        else:
+            K = Key
+
+        if Value.isnumeric():
+            V = int(Value)
+        else: 
+            V = Value
+
+        Dict[K] = V
+
+
     def run_parser(self):
         while self.Span.End != self.Len:
             self.do_key()
@@ -112,7 +128,7 @@ class KVBase:
         for Cnt in range(len(self.Keys)):
             Key = self.Keys[Cnt].from_string(self.String)
             Value = self.Values[Cnt].from_string(self.String)
-            self.KV[Key.strip()] = Value.strip() 
+            self.decode_and_apply_entry(self.KV,Key.strip(),Value.strip()) 
 
         self.Span = Span(0,0)
 
@@ -136,7 +152,7 @@ class KVDefault(KVBase):
    
 
 class KVSep(KVBase):
-    def __init__(self,Str,KSep,VSep):
+    def __init__(self,Str,KSep = '=', VSep = ','):
         super(KVSep,self).__init__(Str)
         self.KSep = KSep
         self.VSep = VSep
@@ -160,7 +176,7 @@ def test_span():
 def test_parsers():
     # Test the parsers
     String = "satisfaction=good, name = Barry Robinson, employer=Northrup Grumman, aspiration = principal engineer"
-    P1 = KVDefault(String)
+    P1 = KVSep(String)
     P1.run_parser()
     P1.print()
     String = "target=Moriarty, detective=Holms, assistant=Watson"
