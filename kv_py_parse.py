@@ -107,7 +107,7 @@ class KVBase:
         while Cnt != len(self.Keys):
             Key = self.Keys[Cnt].from_string(self.String)
             Value = self.Values[Cnt].from_string(self.String)
-            self.KV[Key] = Value 
+            self.KV[Key.strip()] = Value.strip() 
             Cnt += 1
 
         self.Span = Span(0,0)
@@ -151,7 +151,7 @@ def test_span():
 
 def test_parsers():
     # Test the parsers
-    String = "satisfaction=good, name=Barry Robinson, employer=Northrup Grumman, aspiration=principal engineer"
+    String = "satisfaction=good, name = Barry Robinson, employer=Northrup Grumman, aspiration = principal engineer"
     P1 = KVDefault(String)
     P1.run_parser()
     P1.print()
@@ -160,7 +160,7 @@ def test_parsers():
     P1.run_parser()
     P1.print()
 
-    String = "satisfaction&good# name&Barry Robinson# employer&Northrup Grumman# aspiration&principal engineer"
+    String = "satisfaction&good# name&Barry Robinson # employer&Northrup Grumman # aspiration & principal engineer"
     P2 = KVSep(String,'&','#')
     P2.run_parser()
     P2.print()
