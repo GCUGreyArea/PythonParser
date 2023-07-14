@@ -34,6 +34,14 @@ class KVBase:
     # The dict object we will construct
     KV = {}
 
+    def __init__(self, String):
+        self.String = String
+        self.Len = len(String)
+        self.Keys = []
+        self.Values = []
+        self.KV = {}
+        self.Span = Span(0,0) # currnt word in parsing
+
     # eat up spaces and KV seperators
     def eat_up_garbage(self):
         if self.Span.End == self.Len:
@@ -114,29 +122,17 @@ class KVBase:
         self.KV.clear()
         self.Values.clear()
         self.Keys.clear()
-
-
-class KVDefault(KVBase): 
-    # initialise the class variables
-    def __init__(self, Str):
-        self.String = Str
-        self.Len = len(Str)
-        self.Span = Span(0,0)
-        # Not sure why this needs to happen?
-        self.KV.clear()
-        self.Values.clear()
-        self.Keys.clear()
+           
+class KVDefault(KVBase):
+    def __init__(self,Str):
+        super(KVDefault,self).__init__(Str)
+   
 
 class KVSep(KVBase):
     def __init__(self,Str,KSep,VSep):
-        self.String = Str
-        self.Len = len(Str)
+        super(KVSep,self).__init__(Str)
         self.KSep = KSep
         self.VSep = VSep
-        self.Span = Span(0,0)
-        self.KV.clear()
-        self.Values.clear()
-        self.Keys.clear()
 
 def test_span():
     sp = Span(5,10)
@@ -164,14 +160,12 @@ def test_parsers():
     P1.run_parser()
     P1.print()
 
-    # When I don't have `clear` in the __init__ function, it inherets values from the previous instantiation?
-    # This doesnt feel like classes behave like templates?
+    # When I don't have recreate the varaibkes in __init__ function for the base class, 
+    # it inherets values from the previous instantiation?
     String = "satisfaction&good# name&Barry Robinson# employer&Northrup Grumman# asperation&principal engineer"
     P2 = KVSep(String,'&','#')
     P2.run_parser()
     P2.print()
-
-    print(P1.KV == P2.KV)
 
 test_span() 
 
