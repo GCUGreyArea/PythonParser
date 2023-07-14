@@ -160,8 +160,6 @@ def test_parsers():
     P1.run_parser()
     P1.print()
 
-    # When I don't have recreate the varaibkes in __init__ function for the base class, 
-    # it inherets values from the previous instantiation?
     String = "satisfaction&good# name&Barry Robinson# employer&Northrup Grumman# asperation&principal engineer"
     P2 = KVSep(String,'&','#')
     P2.run_parser()
