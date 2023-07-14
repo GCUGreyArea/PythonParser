@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+import sys
 
 # A place to save each word as a span
 class Span: 
@@ -103,12 +106,10 @@ class KVBase:
             print("ERROR: Key value mismatch")
             return()
         
-        Cnt = 0
-        while Cnt != len(self.Keys):
+        for Cnt in range(len(self.Keys)):
             Key = self.Keys[Cnt].from_string(self.String)
             Value = self.Values[Cnt].from_string(self.String)
             self.KV[Key.strip()] = Value.strip() 
-            Cnt += 1
 
         self.Span = Span(0,0)
 
@@ -165,6 +166,22 @@ def test_parsers():
     P2.run_parser()
     P2.print()
 
-test_span() 
 
-test_parsers()
+def tst(): 
+    test_span() 
+    test_parsers()
+
+
+def main(KV, KS = '=', VS = ','): 
+    P1 = KVSep(KV, KS, VS)
+    P1.run_parser()
+    P1.print()
+
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        print('please supply a KV string and optionally key and value sperators')
+    elif len(sys.argv) == 4:
+        main(sys.argv[1], sys.argv[2], sys.argv[3])
+    else:
+        main(sys.argv[1])
