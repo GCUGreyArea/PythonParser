@@ -122,6 +122,7 @@ class KVDefault(KVBase):
         self.String = Str
         self.Len = len(Str)
         self.Span = Span(0,0)
+        # Not sure why this needs to happen?
         self.KV.clear()
         self.Values.clear()
         self.Keys.clear()
@@ -163,6 +164,8 @@ def test_parsers():
     P1.run_parser()
     P1.print()
 
+    # When I don't have `clear` in the __init__ function, it inherets values from the previous instantiation?
+    # This doesnt feel like classes behave like templates?
     String = "satisfaction&good# name&Barry Robinson# employer&Northrup Grumman# asperation&principal engineer"
     P2 = KVSep(String,'&','#')
     P2.run_parser()
