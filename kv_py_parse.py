@@ -109,17 +109,17 @@ class KVBase:
     def decode_and_apply_entry(self,Dict,Key,Value):
         K = None
         V = None
-        if self.is_float(Key): 
-            K = float(Key)
-        elif Key.isnumeric():
+        if Key.isnumeric():
             K = int(Key)
+        elif self.is_float(Key): 
+            K = float(Key)
         else:
             K = Key
 
-        if self.is_float(Value):
-            V = float(Value)
-        elif Value.isnumeric():
+        if Value.isnumeric():
             V = int(Value)
+        elif self.is_float(Value):
+            V = float(Value)
         else: 
             V = Value
 
