@@ -99,16 +99,26 @@ class KVBase:
         self.Span.Start = self.Span.End  
         return self.Span.End
 
+    def is_float(self, Str):
+        try: 
+            float(Str)
+            return True
+        except ValueError:
+            return False
 
     def decode_and_apply_entry(self,Dict,Key,Value):
         K = None
         V = None
-        if Key.isnumeric(): 
+        if self.is_float(Key): 
+            K = float(Key)
+        elif Key.isnumeric():
             K = int(Key)
         else:
             K = Key
 
-        if Value.isnumeric():
+        if self.is_float(Value):
+            V = float(Value)
+        elif Value.isnumeric():
             V = int(Value)
         else: 
             V = Value
