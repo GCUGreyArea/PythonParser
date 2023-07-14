@@ -45,6 +45,7 @@ class KVBase:
         self.KV = {}
         self.Span = Span(0,0) # currnt word in parsing
 
+
     # eat up spaces and KV seperators
     def eat_up_garbage(self):
         if self.Span.End == self.Len:
@@ -62,6 +63,7 @@ class KVBase:
             self.Span.Start += 1
             while self.String[self.Span.Start] == ' ':
                 self.Span.Start += 1
+
 
     def do_value(self):
         self.eat_up_garbage()
@@ -97,6 +99,7 @@ class KVBase:
         self.Span.Start = self.Span.End  
         return self.Span.End
 
+
     def run_parser(self):
         while self.Span.End != self.Len:
             self.do_key()
@@ -113,8 +116,10 @@ class KVBase:
 
         self.Span = Span(0,0)
 
+
     def print(self):
         print(self.KV)
+
 
     def reset(self,String):
         self.Span = Span(0,0)
@@ -124,6 +129,7 @@ class KVBase:
         self.Values.clear()
         self.Keys.clear()
            
+
 class KVDefault(KVBase):
     def __init__(self,Str):
         super(KVDefault,self).__init__(Str)
@@ -134,6 +140,7 @@ class KVSep(KVBase):
         super(KVSep,self).__init__(Str)
         self.KSep = KSep
         self.VSep = VSep
+
 
 def test_span():
     sp = Span(5,10)
