@@ -144,7 +144,8 @@ class KVBase:
 
 
     def print(self):
-        print(self.KV)
+        for key,value in self.KV.items():
+            print(key,'=>',value)
 
 
     def reset(self,String):
