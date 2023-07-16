@@ -1,0 +1,23 @@
+- id: 958CF202-5247-4192-A385-6DBE5B3A12C5
+  name: Tets
+  patterns: 
+    - id: cdde2e49-dc42-40be-bfae-1baa3c4583fa
+      name: aws json
+      type: regex 
+      pattern: '^aws: (?P<json>{.*})'
+    - id: 0b1db7a5-0308-4bfb-87e3-b2a48cee6b88
+      name: basic regex
+      type: regex
+      pattern: '^test: .*'
+    - id: 73cd696e-3ca6-4aec-952a-e2b18dff0d57
+      name: json pattern
+      type: json
+      pattern: 
+        match:
+          .name: Barry Robinson
+        map: 
+          - .name
+          - .ocupation
+
+
+

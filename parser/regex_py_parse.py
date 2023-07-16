@@ -1,9 +1,19 @@
+# Simple python test for regex
+
 import re
+import json 
+
+def match_aws_regex(St):
+    Re = '^aws: (?P<json>{.*})'
+    Match = re.search(Re, St)
+    return Match.group('json') 
 
 
-Re = '^aws: (?P<json>{.*})'
-St = 'aws: {"name":"Barry Robinson","position":"Lead cyber engineer"}'
-Match = re.search(Re, St)
-J = Match.group('json') 
-if J is not None:
-    print('aws json: ',J)
+def main():
+    St = 'aws: {"name":"Barry Robinson","position":"Lead cyber engineer"}'
+    Json = match_aws_regex(St)    
+    Dict = json.loads(Json)
+    print( Dict )
+
+if __name__ == '__main__':
+    main()
