@@ -103,7 +103,7 @@ class KVParser:
         return self._values
 
     # eat up spaces and KV seperators
-    def eat_up_garbage(self):
+    def _eat_up_garbage(self):
         if self._span.get_end() == self.len():
             return()
         
@@ -121,8 +121,8 @@ class KVParser:
                 self._span.slide_start_and_end()
 
 
-    def do_value(self):
-        self.eat_up_garbage()
+    def _do_value(self):
+        self._eat_up_garbage()
         self._span.set_end(self._span.get_start())
 
         for Chr in self._string[self._span.get_start():self._len]:
@@ -139,8 +139,8 @@ class KVParser:
         self._span.set_start(self._span.get_end())
             
 
-    def do_key(self):
-        self.eat_up_garbage()
+    def _do_key(self):
+        self._eat_up_garbage()
         self._span.set_end(self._span.get_start())
         for Chr in self._string[self._span.get_start():self._len]:
             if Chr != self._ksep:
@@ -153,26 +153,26 @@ class KVParser:
         
         self._span.set_start(self._span.get_end())  
 
-    def is_float(self, Str):
+    def _is_float(self, Str):
         try: 
             float(Str)
             return True
         except ValueError:
             return False
 
-    def decode_and_apply_entry(self,Dict,Key,Value):
+    def _decode_and_apply_entry(self,Dict,Key,Value):
         K = None
         V = None
         if Key.isnumeric():
             K = int(Key)
-        elif self.is_float(Key): 
+        elif self._is_float(Key): 
             K = float(Key)
         else:
             K = Key
 
         if Value.isnumeric():
             V = int(Value)
-        elif self.is_float(Value):
+        elif self._is_float(Value):
             V = float(Value)
         else: 
             V = Value
@@ -182,8 +182,8 @@ class KVParser:
 
     def run_parser(self):
         while self._span.get_end() != self._len:
-            self.do_key()
-            self.do_value()
+            self._do_key()
+            self._do_value()
 
         if len(self._keys) != len(self._values):
             print("ERROR: Key value mismatch")
@@ -192,7 +192,7 @@ class KVParser:
         for Cnt in range(len(self._keys)):
             Key = self._keys[Cnt].from_string(self._string)
             Value = self._values[Cnt].from_string(self._string)
-            self.decode_and_apply_entry(self._KV,Key.strip(),Value.strip()) 
+            self._decode_and_apply_entry(self._KV,Key.strip(),Value.strip()) 
 
         self._span = Span(0,0)
 
