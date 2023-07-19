@@ -2,102 +2,156 @@
 
 import sys
 
+class SpanErr(Exception):
+    pass
+
 # A place to save each word as a span
 class Span: 
-    Start = 0
-    End = 0
-    def __init__(self,Start,End):
-        self.Start = Start
-        self.End = End
+    def __init__(self,start,end):
+        self._start = start
+        self._end = end
+        if(self._start > self._end):
+            raise SpanErr("start of span goes past end of span")
 
-    def from_string(self,String):
-        St = String[self.Start:self.End]
-        return St
+
+    def set(self,start,end):
+        self._start = start
+        self._end = end
+        if(self._start > self._end):
+            raise SpanErr("start of span goes past end of span")
+
     
+    def get_end(self):
+        return self._end
+    
+    
+    def set_end(self,end):
+        self._end = end
+
+
+    def get_start(self):
+        return self._start
+
+
+    def set_start(self,start):
+        self._start = start
+        if(self._start > self._end):
+            raise SpanErr("start of span goes past end of span")
+
+    def from_string(self,string):
+        return string[self._start:self._end]
+    
+
     def print(self):
-        print(self.Start,":",self.End)
+        print(self._start,":",self._end)
+
+    
+    def add_start(self,amount):
+        self._start += amount
+        if(self._start > self._end):
+            raise SpanErr("start of span goes past end of span")
+
+
+    def inc_start(self):
+        self._start += 1
+        if(self._start > self._end):
+            raise SpanErr("start of span goes past end of span")
+        
+    
+    def slide_start_and_end(self):
+        self._start +=1
+        self._end +=1
+
+
+    def inc_end(self):
+        self._end +=1
+
+class KVParser:
+    def __init__(self, string, ksep = '=', vsep = ','):
+        self._ksep = ksep
+        self._vsep = vsep
+        self._string = string
+        self._len = len(string)
+        self._keys = []
+        self._values = []
+        self._KV = {}   
+        self._span = Span(0,0) # currnt word in parsing
+
+
+    def string(self):
+        return self._string
     
 
-class KVBase:
-    # Key and Value seperators
-    KSep = '='
-    VSep = ','
+    def set(self,string, ksep = '=', vsep = ','):
+        self._ksep = ksep
+        self._vsep = vsep
+        self._string = string
+        self._len = len(string)
+        self._keys = []
+        self._values = []
+        self._KV = {}   
+        self._span.set(0,0)
 
-    # Variables
-    String = ''
+    
+    def len(self):
+        return self._len
 
-    # lists of Spans in the String 
-    # that represent words which are keys 
-    # or values
-    Keys = []
-    Values = []
-    Len = 0      # Length of the string
-    Span = Span(0,0) # currnt word in parsing
-
-    # The dict object we will construct
-    KV = {}
-
-    def __init__(self, String):
-        self.String = String
-        self.Len = len(String)
-        self.Keys = []
-        self.Values = []
-        self.KV = {}
-        self.Span = Span(0,0) # currnt word in parsing
-
+    def keys(self):
+        return self._keys
+    
+    def values(self):
+        return self._values
 
     # eat up spaces and KV seperators
     def eat_up_garbage(self):
-        if self.Span.End == self.Len:
+        if self._span.get_end() == self.len():
             return()
         
-        Place = self.Span.Start
+        place = self._span.get_start()
         
-        while self.String[Place] == ' ':
-            Place += 1
+        while self._string[place] == ' ':
+            place += 1
 
-        if Place != self.Span.Start:
-            self.Span.Start += Place
+        if place != self._span.get_start():
+            self._span.add_start(place)
 
-        if self.String[Place] == self.KSep or self.String[Place] == self.VSep:
-            self.Span.Start += 1
-            while self.String[self.Span.Start] == ' ':
-                self.Span.Start += 1
+        if self._string[place] == self._ksep or self._string[place] == self._vsep:
+            self._span.slide_start_and_end()
+            while self._string[self._span.get_start()] == ' ':
+                self._span.slide_start_and_end()
 
 
     def do_value(self):
         self.eat_up_garbage()
-        self.Span.End = self.Span.Start
+        self._span.set_end(self._span.get_start())
 
-        for Chr in self.String[self.Span.Start:self.Len]:
-            if Chr != self.VSep:
-                self.Span.End += 1
-            elif Chr == self.VSep:
+        for Chr in self._string[self._span.get_start():self._len]:
+            if Chr != self._vsep:
+                self._span.inc_end()
+            elif Chr == self._vsep:
                 break
-            elif Chr == self.KSep:
-                return -1
+            elif Chr == self._ksep:
+                raise ValueError("invalid input: ", self._string)
 
         # Catch end of string for last vale
-        self.Values.append(Span(self.Span.Start,self.Span.End))
+        self._values.append(Span(self._span.get_start(),self._span.get_end()))
 
-        self.Span.Start = self.Span.End
-        return self.Span.End
+        self._span.set_start(self._span.get_end())
             
 
     def do_key(self):
         self.eat_up_garbage()
-        self.Span.End = self.Span.Start
-        for Chr in self.String[self.Span.Start:self.Len]:
-            if Chr != self.KSep:
-                self.Span.End += 1
-            elif Chr == self.KSep:
-                self.Keys.append(Span(self.Span.Start,self.Span.End))
+        self._span.set_end(self._span.get_start())
+        for Chr in self._string[self._span.get_start():self._len]:
+            if Chr != self._ksep:
+                self._span.inc_end()
+            elif Chr == self._ksep:
+                self._keys.append(Span(self._span.get_start(),self._span.get_end()))
                 break
-            elif Chr == self.VSep:
-                return -1
+            elif Chr == self._vsep:
+                raise ValueError("invalid input: ", self._string)
         
-        self.Span.Start = self.Span.End  
-        return self.Span.End
+        self._span.set_start(self._span.get_end())  
 
     def is_float(self, Str):
         try: 
@@ -127,46 +181,34 @@ class KVBase:
 
 
     def run_parser(self):
-        while self.Span.End != self.Len:
+        while self._span.get_end() != self._len:
             self.do_key()
             self.do_value()
 
-        if len(self.Keys) != len(self.Values):
+        if len(self._keys) != len(self._values):
             print("ERROR: Key value mismatch")
             return()
         
-        for Cnt in range(len(self.Keys)):
-            Key = self.Keys[Cnt].from_string(self.String)
-            Value = self.Values[Cnt].from_string(self.String)
-            self.decode_and_apply_entry(self.KV,Key.strip(),Value.strip()) 
+        for Cnt in range(len(self._keys)):
+            Key = self._keys[Cnt].from_string(self._string)
+            Value = self._values[Cnt].from_string(self._string)
+            self.decode_and_apply_entry(self._KV,Key.strip(),Value.strip()) 
 
-        self.Span = Span(0,0)
+        self._span = Span(0,0)
 
 
     def print(self):
-        for key,value in self.KV.items():
+        for key,value in self._KV.items():
             print(key,'=>',value)
 
 
     def reset(self,String):
-        self.Span = Span(0,0)
-        self.String = String
-        self.Len = len(String)
-        self.KV.clear()
-        self.Values.clear()
-        self.Keys.clear()
-           
-
-class KVDefault(KVBase):
-    def __init__(self,Str):
-        super(KVDefault,self).__init__(Str)
-   
-
-class KVSep(KVBase):
-    def __init__(self,Str,KSep = '=', VSep = ','):
-        super(KVSep,self).__init__(Str)
-        self.KSep = KSep
-        self.VSep = VSep
+        self._span = Span(0,0)
+        self._string = String
+        self._len = len(String)
+        self._KV.clear()
+        self._values.clear()
+        self._keys.clear()
 
 
 def test_span():
@@ -187,16 +229,16 @@ def test_span():
 def test_parsers():
     # Test the parsers
     String = "satisfaction=good, name = Barry Robinson, employer=Northrup Grumman, aspiration = principal engineer"
-    P1 = KVSep(String)
+    P1 = KVParser(String)
     P1.run_parser()
     P1.print()
     String = "target=Moriarty, detective=Holms, assistant=Watson"
-    P1.reset(String)
+    P1.set(String)
     P1.run_parser()
     P1.print()
 
     String = "satisfaction&good# name&Barry Robinson # employer&Northrup Grumman # aspiration & principal engineer"
-    P2 = KVSep(String,'&','#')
+    P2 = KVParser(String,'&','#')
     P2.run_parser()
     P2.print()
 
@@ -207,7 +249,7 @@ def tst():
 
 
 def main(KV, KS = '=', VS = ','): 
-    P1 = KVSep(KV, KS, VS)
+    P1 = KVParser(KV, KS, VS)
     P1.run_parser()
     P1.print()
 
