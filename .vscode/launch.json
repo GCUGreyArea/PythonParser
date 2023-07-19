@@ -11,6 +11,17 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "name": "Python: KV Parser",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/parser/kv_py_parse.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "name=Barry Robinson, job=Lead cyber engineer, satisfaction=Good"
+            ]
         }
     ]
 }
