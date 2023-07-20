@@ -1,5 +1,5 @@
-- id: 958CF202-5247-4192-A385-6DBE5B3A12C5
-  name: Tets
+- id: e9e50fbc-f4bc-480b-b168-f1279ba559c2
+  name: test rule
   patterns: 
     - id: cdde2e49-dc42-40be-bfae-1baa3c4583fa
       name: aws json
@@ -15,6 +15,7 @@
       name: basic kv
       type: regex
       pattern: '^(?P<kv>[\d\w ]+=[\d\w ]+,*(?:[\d\w ]+=[\d\w ]+)*,[\d\w ]+=[\d\w ]+)'
+      partition: root
       triggers:
         - name: kv
           action: forward
@@ -24,14 +25,16 @@
       name: special kv
       pattern: '^(?P<special_kv>[\d\w ]+=[\d\w ]+,*(?:[\d\w ]+=[\d\w ]+)*,[\d\w ]+=[\d\w ]+)'
       type: regex
+      partition: root
       triggers: 
-        - name: special kv
+        - name: special_kv
           action: forward
           format: kv
           partition: special kv 
     - id: 73cd696e-3ca6-4aec-952a-e2b18dff0d57
       name: json pattern
       type: json
+      partition: aws json
       pattern: 
         match:
           .ocupation: Lead Cyber Engineer
@@ -41,8 +44,9 @@
           .name: employee 
           .ocupation: job
     - id: 7eb2ddbe-c547-4ed8-855f-733a99991c29
-      name: special kv 1
+      name: special kv custom delimiters
       type: kv
+      partition: special kv
       pattern:
         key_delim: '#'
         value_delim: '&'
