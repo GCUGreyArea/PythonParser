@@ -4,20 +4,53 @@
     - id: cdde2e49-dc42-40be-bfae-1baa3c4583fa
       name: aws json
       type: regex 
+      partition: root
       pattern: '^aws: (?P<json>{.*})'
+      triggers:
+        - name: json
+          action: forward
+          format: json
+          partition: aws json
     - id: 0b1db7a5-0308-4bfb-87e3-b2a48cee6b88
-      name: basic regex
+      name: basic kv
       type: regex
-      pattern: '^test: .*'
+      pattern: '^(?P<kv>[\d\w ]+=[\d\w ]+,*(?:[\d\w ]+=[\d\w ]+)*,[\d\w ]+=[\d\w ]+)'
+      triggers:
+        - name: kv
+          action: forward
+          format: kv
+          partition: basic kv
+    - id: c3aa076b-6674-48b1-a232-a6d5fec83fb8
+      name: special kv
+      pattern: '^(?P<special_kv>[\d\w ]+=[\d\w ]+,*(?:[\d\w ]+=[\d\w ]+)*,[\d\w ]+=[\d\w ]+)'
+      type: regex
+      triggers: 
+        - name: special kv
+          action: forward
+          format: kv
+          partition: special kv 
     - id: 73cd696e-3ca6-4aec-952a-e2b18dff0d57
       name: json pattern
       type: json
       pattern: 
         match:
-          .name: Barry Robinson
+          .ocupation: Lead Cyber Engineer
+          .roles.skils[]: 
+            contains: java
         map: 
-          - .name
-          - .ocupation
-
-
-
+          .name: employee 
+          .ocupation: job
+    - id: 7eb2ddbe-c547-4ed8-855f-733a99991c29
+      name: special kv 1
+      type: kv
+      pattern:
+        key_delim: '#'
+        value_delim: '&'
+        match: 
+          .level: critical
+          .action: denied
+        map:
+          .level: threat_level
+          .action: action
+          .system: system_name
+          .inip: inbound_ip_address
