@@ -22,6 +22,16 @@
             "args": [
                 "name=Barry Robinson, job=Lead cyber engineer, satisfaction=Good"
             ]
-        }
+        },
+        {
+            "name": "Python: Parser tests",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/parser/test/test_parsers.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [],
+            "cwd" : "${workspaceFolder}/parser/test"
+        }    
     ]
 }
