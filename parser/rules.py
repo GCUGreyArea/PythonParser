@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
+
 import sys
 import yaml
+import os
 
 def load_yaml(FName):
     f = open(FName)
@@ -23,7 +26,9 @@ def get_patterns_by_id(FName):
             RList.append(P['pattern'])
         elif P['type'] == 'json':
             JList.append(P['pattern'])
-    
+        elif P['type'] == 'kv':
+            JList.append(P['pattern'])
+            
     return [PBI,PBN,TMap]
 
 def main(file):
