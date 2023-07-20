@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 
-# import from the directory above this one
-# import sys
-# sys.path.append("..")
-
+import os
 import unittest
 import re
 from kv_py_parse import KVParser
 from json_py_parse import parse_json,contains
 from rules import uuidStore,get_rules
-import os
+
 
 # Fix issue with test runner in vscode by 
 # the passing complete path
