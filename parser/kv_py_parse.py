@@ -77,11 +77,9 @@ class KVParser:
         self._KV = {}   
         self._span = Span(0,0) # currnt word in parsing
 
-
     def string(self):
         return self._string
     
-
     def set(self,string, ksep = '=', vsep = ','):
         self._ksep = ksep
         self._vsep = vsep
@@ -91,7 +89,6 @@ class KVParser:
         self._values = []
         self._KV = {}   
         self._span.set(0,0)
-
     
     def len(self):
         return self._len
@@ -192,10 +189,10 @@ class KVParser:
         for Cnt in range(len(self._keys)):
             Key = self._keys[Cnt].from_string(self._string)
             Value = self._values[Cnt].from_string(self._string)
-            self._decode_and_apply_entry(self._KV,Key.strip(),Value.strip()) 
+            self._decode_and_apply_entry(self._KV,"." + Key.strip(),Value.strip()) 
 
         self._span = Span(0,0)
-
+        return self._KV
 
     def print(self):
         for key,value in self._KV.items():
