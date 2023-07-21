@@ -3,7 +3,7 @@
 import sys
 import os
 import re
-from rules import get_rules,build_partitions 
+from rules import get_rules,build_partitions,GlobalUuid
 from kv_py_parse import KVParser
 import json
 
@@ -144,13 +144,14 @@ class JsonEngine(Engine):
 # Framework class to run parsers
 class Framework: 
     def __init__(self, rule_dir):
+        self._uuid_store = GlobalUuid()
         # Find all flies that end in "yaml" and who's names are a mix of letters and numbers
         Files = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(rule_dir)) for f in fn if re.match(r'[\w\d]+\.yaml', f)]
         self._partitions = {}
         self._rule_by_id = {}
         self._rule_by_pattern_id = {} 
         for File in Files:
-            RuleList = get_rules(File)
+            RuleList = get_rules(File, self._uuid_store)
             for Rule in RuleList:
                 self._rule_by_id[Rule.uuid()] = Rule
 
@@ -233,7 +234,7 @@ class Framework:
             eng.print()
 
 
-    def generate_output(self,UuidList,parse_map):
+    def generate_output_map(self,UuidList,parse_map):
         RuleMap = {}
         RuleList = []
         for uuid in UuidList:
@@ -264,13 +265,27 @@ class Framework:
         out['tokens'] = parse_map
 
         return out
+
+
+    def generate_json_output(self,UuidList,parse_map):
+        out = self.generate_output_map(UuidList,parse_map)
+        return json.dumps(out)
+    
+
+    def parse_messages(self,MsgList):
+        ResList = []
+        for msg in MsgList:
+            (PtnList,Tokens) = self.parse_fragment(msg, 'root:regex')
+            ResList.append(self.generate_output(PtnList,Tokens))
+
+        return json.dumps
         
 
 def main(dir, message):
         f = Framework(dir)
         (PtnList,Token) = f.parse_fragment(message, 'root:regex')
-        out = f.generate_output(PtnList,Token)
-        print(json.dumps(out))
+        out = f.generate_json_output(PtnList,Token)
+        print(out)
 
 if __name__ == '__main__':
     if len(sys.argv) != 3: 

@@ -5,8 +5,9 @@ import unittest
 import re
 from kv_py_parse import KVParser
 from json_py_parse import parse_json,contains
-from rules import uuidStore,get_rules
+from rules import get_rules,GlobalUuid
 from framework import Framework
+import json
 
 
 # Fix issue with test runner in vscode by 
@@ -65,6 +66,7 @@ class TestParsersAndRegex(unittest.TestCase):
 
 
     def test_uuid_store(self):
+        uuidStore = GlobalUuid()
         # There can only ne one of each uuid
         uuid = '3a7cc24a-b0f9-41da-812b-01b3ab675b41'
         self.assertTrue(uuidStore.validate(uuid))
@@ -77,56 +79,56 @@ class TestParsersAndRegex(unittest.TestCase):
     def test_yaml_decoder_exceptions(self):
         try:
             file = get_file_path('test_rule_one.yaml', 'assertions')
-            get_rules(file)
+            get_rules(file,GlobalUuid())
         except ValueError as e:
             self.assertEqual(str(e),"Pattern 958ca0c5-df83-4267-b873-4f34fad95fbf does not have a name")
 
         try:
             file = get_file_path('test_rule_two.yaml','assertions')
-            get_rules(file)
+            get_rules(file,GlobalUuid())
         except ValueError as e:
             self.assertEqual(str(e),"Pattern has no type: {'id': 'f9108c6b-a924-4dbc-a0df-583593e1bb5b', 'name': 'aws json', 'partition': 'root', 'pattern': '^aws: (?P<json>{.*})', 'triggers': [{'name': 'json', 'action': 'forward', 'format': 'json', 'partition': 'aws json'}]}")
 
         try:
             file = get_file_path('test_rule_three.yaml','assertions')
-            get_rules(file)
+            get_rules(file,GlobalUuid())
         except ValueError as e:
             self.assertEqual(str(e),"Pattern 5ceaf8a7-8551-4dd7-aeeb-2c0ec482c8c3 does not declare a partition")
             
         try:
             file = get_file_path('test_rule_four.yaml','assertions')
-            get_rules(file)
+            get_rules(file,GlobalUuid())
         except ValueError as e:
             self.assertEqual(str(e),"Pattern 00d4c181-6105-49cd-8bd6-dd7006212e43 does not have a pattern entry")
 
         try:
             file = get_file_path('test_rule_five.yaml','assertions')
-            get_rules(file)
+            get_rules(file,GlobalUuid())
         except ValueError as e:
             self.assertEqual("A regex pattern must have at least one triggers or map statement",str(e))
         
         try:
             file = get_file_path('test_rule_six.yaml','assertions')
-            get_rules(file)
+            get_rules(file,GlobalUuid())
         except ValueError as e:
             file = get_file_path('test_rule_six.yaml','assertions')
             self.assertEqual(f"Rule e9e50fbc-f4bc-480b-b168-f1279ba559c2 in file {file} has no name",str(e))
 
         try:
             file = get_file_path('test_rule_seven.yaml','assertions')
-            get_rules(file)
+            get_rules(file,GlobalUuid())
         except ValueError as e:
             self.assertEqual(str(e),f"Rule in file {file} has no id")
 
         try:
             file = get_file_path("test_rule_eight.yaml",'assertions')
-            get_rules(file)
+            get_rules(file,GlobalUuid())
         except ValueError as e:
             self.assertEqual(str(e),f"Rule e9e50fbc-f4bc-480b-b168-f1279ba559c2 in file {file} has no patterns")
 
     def test_rule_list(self):
         file = get_file_path("test_rule_nine.yaml",'assertions')
-        RList = get_rules(file)
+        RList = get_rules(file,GlobalUuid())
         self.assertTrue(len(RList) == 2)
 
         R1 = RList[0]
@@ -167,19 +169,31 @@ class TestParsersAndRegex(unittest.TestCase):
         path = get_file_path('','framework_one')
         f = Framework(path)
 
-        res = f.parse_fragment('name: barry age: 58', 'root:regex')
+        (_,res) = f.parse_fragment('name: barry age: 58', 'root:regex')
 
         self.assertEqual('barry',res['name'])
         self.assertEqual('58',res['age'])
 
-    def test_framework_two(self):
+    # def test_framework_two(self):
+    #     path = get_file_path('','framework_two')
+    #     f = Framework(path)
+
+    #     (_,res) = f.parse_fragment('aws: {"name":"Barry Robinson","satisfaction":"high"}', 'root:regex')
+
+    #     self.assertEqual('Barry Robinson',res['name'])
+    #     self.assertEqual('high',res['value'])
+
+    def test_framwork_output(self):
         path = get_file_path('','framework_two')
         f = Framework(path)
 
-        res = f.parse_fragment('aws: {"name":"Barry Robinson","satisfaction":"high"}', 'root:regex')
+        (ptn,res) = f.parse_fragment('aws: {"name":"Barry Robinson","satisfaction":"high"}', 'root:regex')
+        out = f.generate_json_output(ptn,res)
+        JMap = {'rule': 'bf1d64ad-9694-4317-b7a6-55e9a4915437', 'pattern': ['f28a4fcc-32dd-4c4b-afd6-4aca3e4f5537', 'eb4963b9-3fa5-4338-8a40-01a35fecc782'], 'tokens': {'name': 'Barry Robinson', 'value': 'high'}}
+        JStr = json.dumps(JMap)
 
-        self.assertEqual('Barry Robinson',res['name'])
-        self.assertEqual('high',res['value'])
+        self.assertEqual(JStr,out)
+
 
 if __name__ == '__main__':
     unittest.main()

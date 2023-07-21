@@ -28,12 +28,8 @@ class GlobalUuid:
 
         return False
 
-# Single instance of the uuid store. This needs to deduplicate UUIDs and 
-# is used to raise an exception if the UUID does not validate
-uuidStore = GlobalUuid()
-
 class Pattern:
-    def __init__(self,P):
+    def __init__(self,P,UuidStore):
         uuid = None
         triggers = None
         ptn = None
@@ -46,7 +42,7 @@ class Pattern:
         except KeyError:
             raise ValueError(f"Pattern {P}  does not have an id")
 
-        if not uuidStore.validate(uuid):
+        if not UuidStore.validate(uuid):
             raise ValueError(f"Pattern uuid is invalid: {uuid}")
         
         try: 
@@ -110,8 +106,8 @@ class Pattern:
               '\tpattern: ', self._ptn)
 
 class RegexPattern(Pattern):
-    def __init__(self,P):
-        super().__init__(P)
+    def __init__(self,P,UuidStore):
+        super().__init__(P,UuidStore)
         self._map = {}
         try:
             self._map = P['map']
@@ -123,8 +119,8 @@ class RegexPattern(Pattern):
         return self._map
 
 class StructuredPattern(Pattern):
-    def __init__(self, P):
-        super().__init__(P)
+    def __init__(self, P, UuidStore):
+        super().__init__(P,UuidStore)
        
         Ptn = super().pattern()
         try:
@@ -144,8 +140,8 @@ class StructuredPattern(Pattern):
         return self._map
 
 class Rule:
-    def __init__(self,uuid,name, patterns):
-        if not uuidStore.validate(uuid):
+    def __init__(self,uuid,name, patterns,UuidStore):
+        if not UuidStore.validate(uuid):
             raise ValueError(f"uuid is invalid: {uuid}")
         
         self._uuid = uuid
@@ -180,29 +176,29 @@ def load_yaml(FName):
     
     return Yaml
 
-def _construct_pattern(Ptn):
+def _construct_pattern(Ptn,UuidStore):
     try: 
         Type = Ptn['type']
     except KeyError:
         raise ValueError(f"Pattern has no type: {Ptn}")
     
     if Type == 'regex':
-        return RegexPattern(Ptn)
+        return RegexPattern(Ptn,UuidStore)
     elif Type == 'kv' or Type == 'json':
-        return StructuredPattern(Ptn)
+        return StructuredPattern(Ptn,UuidStore)
     
     raise ValueError(f"Unknown pattern type {Type}")
 
-def _get_rule_patterns(Ptns):
+def _get_rule_patterns(Ptns,UuidStore):
     Patterns = []
     for P in Ptns:
-        Ptn = _construct_pattern(P)
+        Ptn = _construct_pattern(P,UuidStore)
         Patterns.append(Ptn)
 
     return Patterns
 
 
-def get_rules(FName):
+def get_rules(FName,UuidStore):
     """
         Get the patters from a YAML file and validate that entries are correct
         Args: 
@@ -239,8 +235,8 @@ def get_rules(FName):
         except KeyError:
             raise ValueError(f"Rule {ID} in file {FName} has no patterns")
 
-        Patterns = _get_rule_patterns(Ptns)
-        ParsedRules.append(Rule(ID,Name,Patterns))
+        Patterns = _get_rule_patterns(Ptns,UuidStore)
+        ParsedRules.append(Rule(ID,Name,Patterns,UuidStore))
     
     return ParsedRules
 
