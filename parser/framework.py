@@ -205,13 +205,14 @@ class Framework:
 
 def main(dir, message):
         f = Framework(dir)
-        f.print()
 
         res = f.parse_fragment(message, 'root:regex')
         print('tokens: ',res)
 
 if __name__ == '__main__':
     if len(sys.argv) != 3: 
-        print('please supply a file to parse')
+        print('usage: ./framework.py <rule dir> <message>')
+        print('rule dir: The root directory for rules files')
+        print('message: The message to parse using the rules')
     else: 
         main(sys.argv[1],sys.argv[2])
