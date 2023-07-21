@@ -40,7 +40,7 @@
             "program": "${workspaceFolder}/parser/framework.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["resources/framework"],
+        "args": ["resources/framework_two","aws: {\"name\":\"Barry Robinson\",\"satisfaction\":\"high\"}"],
             "cwd" : "${workspaceFolder}/parser"
         }    
 
