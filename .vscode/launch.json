@@ -27,11 +27,22 @@
             "name": "Python: Parser tests",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/parser/test/test_parsers.py",
+            "program": "${workspaceFolder}/parser/test_parsers.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [],
-            "cwd" : "${workspaceFolder}/parser/test"
+            "cwd" : "${workspaceFolder}/parser"
+        },
+        {
+            "name": "Python: framework.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/parser/framework.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["resources/framework"],
+            "cwd" : "${workspaceFolder}/parser"
         }    
+
     ]
 }
