@@ -53,6 +53,10 @@ The above rule, for the message `'aws: {"name":"Barry Robinson","satisfaction":"
 
 For more details about the parser please checkout the [parser design document](parser/docs/design.md).
 
+## Note 
+
+1. Currently only supports `regex` parsing engine
+2. Design for `kv` and `json` engines needs to assess uniqueness of `match` criteria on the pattern
 
 ### Todo 
 
