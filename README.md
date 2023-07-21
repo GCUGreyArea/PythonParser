@@ -35,10 +35,10 @@ An example rule file is presented beow
       name: aws regex
       type: regex
       partition: aws regex
-      pattern: '^{"name":"(?P<name>[\w ]+)","value":"(?P<value>[\w ]+)"}'
+      pattern: '^{"name":"(?P<name>[\w ]+)","satisfaction":"(?P<satisfaction>[\w ]+)"}'
       map:
         name: name
-        value: value
+        satisfaction: value
 ```
 
 With this rule the string `'aws: {"name":"Barry Robinson","value":"high"}'` is first matched by trhe pattern `f28a4fcc-32dd-4c4b-afd6-4aca3e4f5537` whose trigger is setup to forward the text extracted by the `json` capture group to to a `regex` partition called `aws regex`. 
@@ -49,8 +49,16 @@ If no rules with patterns for the message exists, an empty map is returned.
 
 If a rule (or set of rules and patterns) exists that can parse the message, a map of `{'token name':'token value'}` is returned for the tokanized message. 
 
+The above rule, for the message `'aws: {"name":"Barry Robinson","satisfaction":"high"}'` yields the tokens `{'name': 'Barry Robinson', 'value': 'high'}`
+
 For more details about the parser please checkout the [parser design document](parser/docs/design.md).
 
+
+### Todo 
+
+1. Finish the `KV` Parser class 
+2. Finish the `JSON` Parser class
+3. Finish mapping for `jq path` spacified patterns for `KV` and `JSON`  
 
 ## Old 
 
