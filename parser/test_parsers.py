@@ -176,7 +176,7 @@ class TestParsersAndRegex(unittest.TestCase):
         path = get_file_path('','framework_two')
         f = Framework(path)
 
-        res = f.parse_fragment('aws: {"name":"Barry Robinson","value":"high"}', 'root:regex')
+        res = f.parse_fragment('aws: {"name":"Barry Robinson","satisfaction":"high"}', 'root:regex')
 
         self.assertEqual('Barry Robinson',res['name'])
         self.assertEqual('high',res['value'])
