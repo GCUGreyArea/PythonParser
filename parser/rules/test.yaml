@@ -1,14 +1,13 @@
 - id: e9e50fbc-f4bc-480b-b168-f1279ba559c2
   name: test rule
   patterns: 
-    - id: cdde2e49-dc42-40be-bfae-1baa3c4583fa
+    - id: b389ceeb-484e-45fd-8d50-9bf2fb23b744
       name: aws json
       type: regex 
       partition: root
       pattern: '^aws: (?P<json>{.*})'
       triggers:
         - name: json
-          action: forward
           format: json
           partition: aws json
     - id: 0b1db7a5-0308-4bfb-87e3-b2a48cee6b88
@@ -18,7 +17,6 @@
       partition: root
       triggers:
         - name: kv
-          action: forward
           format: kv
           partition: basic kv
     - id: c3aa076b-6674-48b1-a232-a6d5fec83fb8
@@ -28,7 +26,6 @@
       partition: root
       triggers: 
         - name: special_kv
-          action: forward
           format: kv
           partition: special kv 
     - id: 73cd696e-3ca6-4aec-952a-e2b18dff0d57
@@ -40,9 +37,10 @@
           .ocupation: Lead Cyber Engineer
           .roles.skils[]: 
             contains: java
+          .productivity:
         map: 
-          .name: employee 
-          .ocupation: job
+          employee: .name 
+          job: .ocupation
     - id: 7eb2ddbe-c547-4ed8-855f-733a99991c29
       name: special kv custom delimiters
       type: kv
@@ -54,7 +52,16 @@
           .level: critical
           .action: denied
         map:
-          .level: threat_level
-          .action: action
-          .system: system_name
-          .inip: inbound_ip_address
+          threat_level: .level
+          action: .action
+          system_name: .system 
+          inbound_ip_address: .inip
+    - id: 4fece7ac-e04b-411d-9436-2bb4b4e04780
+      name: token regex
+      type: regex 
+      partition: tokens
+      pattern: ^(?P<first>\w+) (?P<last>\w+)
+      map:
+        first: first
+        last: last
+

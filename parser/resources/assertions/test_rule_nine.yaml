@@ -1,7 +1,7 @@
 - id: e9e50fbc-f4bc-480b-b168-f1279ba559c2
   name: test rule one
   patterns: 
-    - id: cdde2e49-dc42-40be-bfae-1baa3c4583fa
+    - id: 0248953f-7d46-42ea-af3d-4ce067075eff
       name: aws json one
       type: regex 
       partition: root

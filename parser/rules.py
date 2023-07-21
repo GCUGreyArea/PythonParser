@@ -19,6 +19,7 @@ class GlobalUuid:
         return True
 
     def validate(self,uuid):
+        # Each UUID must be unknown
         try:
             self._map[uuid]
         except KeyError:
@@ -30,16 +31,54 @@ class GlobalUuid:
 # Single instance of the uuid store. This needs to deduplicate UUIDs and 
 # is used to raise an exception if the UUID does not validate
 uuidStore = GlobalUuid()
+
 class Pattern:
-    def __init__(self,uuid,ptn,type,name,triggers,mappings,partition):
+    def __init__(self,P):
+        uuid = None
+        triggers = None
+        ptn = None
+        type = None
+        name = None
+        partition = None
+
+        try:
+            uuid = P['id']
+        except KeyError:
+            raise ValueError(f"Pattern {P}  does not have an id")
+
         if not uuidStore.validate(uuid):
-            raise ValueError(f"uuid is invalid: {uuid}")
+            raise ValueError(f"Pattern uuid is invalid: {uuid}")
+        
+        try: 
+            ptn = P['pattern']
+        except KeyError:
+            raise ValueError(f"Pattern {uuid} does not have a pattern entry")
+
+        try:
+            triggers = P['triggers']
+        except KeyError:
+            pass
+
+        try: 
+            type = P['type']
+        except KeyError:
+            raise ValueError(f"Pattern {uuid} does not have a type") 
+        
+        try: 
+            name = P['name']
+        except KeyError:
+            raise ValueError(f"Pattern {uuid} does not have a name")
+        
+        try:
+            partition = P['partition']
+        except KeyError:
+            raise ValueError(f"Pattern {uuid} does not declare a partition")
+
         self._uuid = uuid
         self._ptn = ptn
         self._type = type
         self._name = name
         self._triggers = triggers
-        self._mappings = mappings
         self._partition = partition
 
     def uuid(self):
@@ -69,7 +108,41 @@ class Pattern:
               '\ttype: ',self._type,
               '\tpartition: ',self._partition,
               '\tpattern: ', self._ptn)
+
+class RegexPattern(Pattern):
+    def __init__(self,P):
+        super().__init__(P)
+        self._map = {}
+        try:
+            self._map = P['map']
+        except KeyError:
+            if self.triggers() == None:
+                raise ValueError("A regex pattern must have at least one triggers or map statement")
+            
+    def map(self):
+        return self._map
+
+class StructuredPattern(Pattern):
+    def __init__(self, P):
+        super().__init__(P)
+       
+        Ptn = super().pattern()
+        try:
+            self._match = Ptn['match']
+        except KeyError:
+            raise ValueError(f"Structured pattern must have a match criteria")
+        
+        try:
+            self._map = Ptn['map']
+        except KeyError:
+            raise ValueError(f"Structured pattern must have a map criteria")
     
+    def match(self):
+        return self._match
+    
+    def map(self):
+        return self._map
+
 class Rule:
     def __init__(self,uuid,name, patterns):
         if not uuidStore.validate(uuid):
@@ -97,60 +170,34 @@ class Rule:
             ptn.print()
 
 def load_yaml(FName):
-    f = open(FName)
-    Y = yaml.load(f, Loader=yaml.FullLoader)
-    f.close()
-    return Y
+    try: 
+        f = open(FName)
+        Yaml = yaml.load(f, Loader=yaml.FullLoader)
+    except FileExistsError:
+        raise ValueError(f"File {FName} does not exist")
+    finally:
+        f.close()
+    
+    return Yaml
 
+def _construct_pattern(Ptn):
+    try: 
+        Type = Ptn['type']
+    except KeyError:
+        raise ValueError(f"Pattern has no type: {Ptn}")
+    
+    if Type == 'regex':
+        return RegexPattern(Ptn)
+    elif Type == 'kv' or Type == 'json':
+        return StructuredPattern(Ptn)
+    
+    raise ValueError(f"Unknown pattern type {Type}")
 
 def _get_rule_patterns(Ptns):
-    Trigs = []
-    Maps = []
-    uuid = None
-    ptn = None
-    name = None
-    type = None
-    partition = None
-
     Patterns = []
     for P in Ptns:
-        try:
-            uuid = P['id']
-        except KeyError:
-            raise ValueError(f"Pattern {P}  does not have an id")
-        
-        # We must have at least one of either triggers or mappings
-        try:
-            Trigs = P['triggers']
-        except KeyError:
-            pass
-        try: 
-            Maps = P['mappings']
-        except KeyError:
-            pass
-        if len(Trigs) == 0 and len(Maps) == 0:
-            raise ValueError(f'Pattern {uuid} must have a triggers entry or map to tokens')
-        
-        try: 
-            ptn = P['pattern']
-        except KeyError:
-            raise ValueError(f"Pattern {uuid} does not have a pattern entry")
-        
-        try: 
-            type = P['type']
-        except KeyError:
-            raise ValueError(f"Pattern {uuid} does not have a type") 
-        
-        try: 
-            name = P['name']
-        except KeyError:
-            raise ValueError(f"Pattern {uuid} does not have a name")
-        
-        try:
-            partition = P['partition']
-        except KeyError:
-            raise ValueError(f"Pattern {uuid} does not declare a partition")
-        Patterns.append(Pattern(uuid,ptn,type,name,Trigs,Maps,partition))
+        Ptn = _construct_pattern(P)
+        Patterns.append(Ptn)
 
     return Patterns
 
@@ -202,12 +249,16 @@ def build_partitions(Rules):
     Partitions = {}
     for Rule in Rules:
         for Ptn in Rule.patterns():
+            Part = Ptn.partition()
             PtnList = []
             try:
-                PtnList = Partitions[Ptn.partition()]
+                PtnList = Partitions[Part]
             except KeyError:
-                Partitions[Ptn.partition()] = PtnList
+                Partitions[Part] = PtnList
                 
+            if Part == 'root' and Ptn.type() != 'regex':
+                raise ValueError(f"Root partitoin can only contain regex patterns: {Ptn.uuid()}:{Ptn.type()}")
+            
             PtnList.append(Ptn)
 
     return Partitions

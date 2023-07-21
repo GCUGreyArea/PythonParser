@@ -1,7 +1,7 @@
-- id: e9e50fbc-f4bc-480b-b168-f1279ba559c2
-  name: test rule
+- name: test rule
   patterns: 
-    - id: cdde2e49-dc42-40be-bfae-1baa3c4583fa
+    - id: c9b2f39d-ddea-42df-a122-c297eb6d5edb
+      name: aws json
       type: regex 
       partition: root
       pattern: '^aws: (?P<json>{.*})'

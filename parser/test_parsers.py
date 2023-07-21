@@ -6,21 +6,26 @@ import re
 from kv_py_parse import KVParser
 from json_py_parse import parse_json,contains
 from rules import uuidStore,get_rules
+from framework import Framework
 
 
 # Fix issue with test runner in vscode by 
 # the passing complete path
-def setup_cwd():
+def _setup_cwd():
     cwd = os.getcwd()
-    if(cwd == "/home/barry/python_course/Fundamentals"):
+    if(cwd[-12:] == "Fundamentals"):
         cwd +='/parser/'
     else:
         cwd += '/'
 
     return cwd
  
+cwd = _setup_cwd()
 
-"""Test thatthe parsers function correctly."""
+def get_file_path(file,test):
+    return cwd + 'resources/' + test + '/' + file
+
+# Test that the parsers function correctly.
 class TestParsersAndRegex(unittest.TestCase):
     def test_json_regex(self):
         Re = '^aws: (?P<json>{.*})'
@@ -70,51 +75,58 @@ class TestParsersAndRegex(unittest.TestCase):
         self.assertFalse(uuidStore.validate(uuid))
 
     def test_yaml_decoder_exceptions(self):
-        cwd = setup_cwd()
         try:
-            get_rules(cwd + 'resources/test_rule_one.yaml')
+            file = get_file_path('test_rule_one.yaml', 'assertions')
+            get_rules(file)
         except ValueError as e:
-            self.assertEqual(str(e),"Pattern cdde2e49-dc42-40be-bfae-1baa3c4583fa does not have a name")
+            self.assertEqual(str(e),"Pattern 958ca0c5-df83-4267-b873-4f34fad95fbf does not have a name")
 
         try:
-            get_rules(cwd + 'resources/test_rule_two.yaml')
+            file = get_file_path('test_rule_two.yaml','assertions')
+            get_rules(file)
         except ValueError as e:
-            self.assertEqual(str(e),"Pattern cdde2e49-dc42-40be-bfae-1baa3c4583fa does not have a type")
+            self.assertEqual(str(e),"Pattern has no type: {'id': 'f9108c6b-a924-4dbc-a0df-583593e1bb5b', 'name': 'aws json', 'partition': 'root', 'pattern': '^aws: (?P<json>{.*})', 'triggers': [{'name': 'json', 'action': 'forward', 'format': 'json', 'partition': 'aws json'}]}")
 
         try:
-            get_rules(cwd + 'resources/test_rule_three.yaml')
+            file = get_file_path('test_rule_three.yaml','assertions')
+            get_rules(file)
         except ValueError as e:
-            self.assertEqual(str(e),"Pattern cdde2e49-dc42-40be-bfae-1baa3c4583fa does not declare a partition")
+            self.assertEqual(str(e),"Pattern 5ceaf8a7-8551-4dd7-aeeb-2c0ec482c8c3 does not declare a partition")
             
         try:
-            get_rules(cwd + 'resources/test_rule_four.yaml')
+            file = get_file_path('test_rule_four.yaml','assertions')
+            get_rules(file)
         except ValueError as e:
-            self.assertEqual(str(e),"Pattern cdde2e49-dc42-40be-bfae-1baa3c4583fa does not have a pattern entry")
+            self.assertEqual(str(e),"Pattern 00d4c181-6105-49cd-8bd6-dd7006212e43 does not have a pattern entry")
 
         try:
-            get_rules(cwd + 'resources/test_rule_five.yaml')
+            file = get_file_path('test_rule_five.yaml','assertions')
+            get_rules(file)
         except ValueError as e:
-            self.assertEqual(str(e),"Pattern cdde2e49-dc42-40be-bfae-1baa3c4583fa must have a triggers entry or map to tokens")
+            self.assertEqual("A regex pattern must have at least one triggers or map statement",str(e))
         
         try:
-            get_rules(cwd + 'resources/test_rule_six.yaml')
+            file = get_file_path('test_rule_six.yaml','assertions')
+            get_rules(file)
         except ValueError as e:
-            self.assertEqual(str(e),"Rule e9e50fbc-f4bc-480b-b168-f1279ba559c2 in file /home/barry/python_course/Fundamentals/parser/resources/test_rule_six.yaml has no name")
+            file = get_file_path('test_rule_six.yaml','assertions')
+            self.assertEqual(f"Rule e9e50fbc-f4bc-480b-b168-f1279ba559c2 in file {file} has no name",str(e))
 
         try:
-            get_rules(cwd + 'resources/test_rule_seven.yaml')
+            file = get_file_path('test_rule_seven.yaml','assertions')
+            get_rules(file)
         except ValueError as e:
-            self.assertEqual(str(e),"Rule in file /home/barry/python_course/Fundamentals/parser/resources/test_rule_seven.yaml has no id")
+            self.assertEqual(str(e),f"Rule in file {file} has no id")
 
         try:
-            get_rules(cwd + 'resources/test_rule_eight.yaml')
+            file = get_file_path("test_rule_eight.yaml",'assertions')
+            get_rules(file)
         except ValueError as e:
-            self.assertEqual(str(e),"Rule e9e50fbc-f4bc-480b-b168-f1279ba559c2 in file /home/barry/python_course/Fundamentals/parser/resources/test_rule_eight.yaml has no patterns")
+            self.assertEqual(str(e),f"Rule e9e50fbc-f4bc-480b-b168-f1279ba559c2 in file {file} has no patterns")
 
     def test_rule_list(self):
-        cwd = setup_cwd()
-
-        RList = get_rules(cwd + 'resources/test_rule_nine.yaml')
+        file = get_file_path("test_rule_nine.yaml",'assertions')
+        RList = get_rules(file)
         self.assertTrue(len(RList) == 2)
 
         R1 = RList[0]
@@ -129,7 +141,7 @@ class TestParsersAndRegex(unittest.TestCase):
 
         P1 = R1.patterns()
 
-        self.assertEqual(P1[0].uuid(),'cdde2e49-dc42-40be-bfae-1baa3c4583fa')
+        self.assertEqual(P1[0].uuid(),'0248953f-7d46-42ea-af3d-4ce067075eff')
         self.assertEqual(P1[0].name(),'aws json one')
         self.assertEqual(P1[0].type(),'regex')
         self.assertEqual(P1[0].partition(),'root')
@@ -148,6 +160,26 @@ class TestParsersAndRegex(unittest.TestCase):
 
         self.assertEqual(P2[1].uuid(),'4a06182f-2abe-475d-a7d6-d071bd4377d0')
         self.assertEqual(P2[1].name(),'basic kv two')
+
+    # That the framework returns a list of fragments
+    # for a parsed message
+    def test_framework_one(self):
+        path = get_file_path('','framework_one')
+        f = Framework(path)
+
+        res = f.parse_fragment('name: barry age: 58', 'root:regex')
+
+        self.assertEqual('barry',res['name'])
+        self.assertEqual('58',res['age'])
+
+    def test_framework_two(self):
+        path = get_file_path('','framework_two')
+        f = Framework(path)
+
+        res = f.parse_fragment('aws: {"name":"Barry Robinson","value":"high"}', 'root:regex')
+
+        self.assertEqual('Barry Robinson',res['name'])
+        self.assertEqual('high',res['value'])
 
 if __name__ == '__main__':
     unittest.main()
