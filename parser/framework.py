@@ -253,7 +253,14 @@ class Framework:
         else:
             out['rule'] = RuleList
 
-        out['pattern'] = UuidList
+
+        if len(UuidList) == 0:
+            pass
+        elif len(UuidList) == 1:
+            out['pattern'] = UuidList[0]
+        else:
+            out['pattern'] = UuidList
+
         out['tokens'] = parse_map
 
         return out
