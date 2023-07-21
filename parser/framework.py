@@ -263,7 +263,7 @@ def main(dir, message):
         f = Framework(dir)
         (PtnList,Token) = f.parse_fragment(message, 'root:regex')
         out = f.generate_output(PtnList,Token)
-        print(out)
+        print(json.dumps(out))
 
 if __name__ == '__main__':
     if len(sys.argv) != 3: 
