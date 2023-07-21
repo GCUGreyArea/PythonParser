@@ -5,6 +5,7 @@ import os
 import re
 from rules import get_rules,build_partitions 
 from kv_py_parse import KVParser
+import json
 
 
 # An action can either map to a token name 
@@ -50,13 +51,13 @@ class Action:
 class Engine:
     def __init__(self,type):
         self._type = type
-        self._patterns = []
+        self._patterns = {}
 
     def add_pattern(self,ptn):
         if ptn.type() != self._type:
             raise ValueError(f"Pattern has the wrong type: {ptn.type()}")
         
-        self._patterns.append(ptn)
+        self._patterns[ptn.uuid()] = ptn
 
     def print(self):
         print("type: ",self._type)
@@ -73,7 +74,7 @@ class RegexEngine(Engine):
         super().print()
 
     def finalise(self):
-        for p in self._patterns:
+        for _,p in self._patterns.items():
             triggers = p.triggers()
             maps = p.map()
 
@@ -90,11 +91,12 @@ class RegexEngine(Engine):
                     action_map[label] = Action(path, True)
 
             # Add this is a tuple
-            self._reg.append( (re.compile(p.pattern()),action_map) )
+            self._reg.append( (re.compile(p.pattern()),action_map,p) )
 
     def parse(self,frag_str):
         FrgList = []
-        for ptn,act_map in self._reg:
+        Ret = (None,FrgList)
+        for ptn,act_map,p in self._reg:
             m = ptn.match(frag_str)
             if m:
                 for n,i in ptn.groupindex.items():
@@ -102,9 +104,10 @@ class RegexEngine(Engine):
                     action = act_map[n]
                     FrgList.append((val,action))
                 
-                return FrgList
+
+                return (p,FrgList)
             
-        return FrgList
+        return Ret
 
 
 # engine for kv parsing
@@ -144,10 +147,15 @@ class Framework:
         # Find all flies that end in "yaml" and who's names are a mix of letters and numbers
         Files = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(rule_dir)) for f in fn if re.match(r'[\w\d]+\.yaml', f)]
         self._partitions = {}
-        self._rule_list = []
+        self._rule_by_id = {}
+        self._rule_by_pattern_id = {} 
         for File in Files:
             RuleList = get_rules(File)
-            self._rule_list.append(RuleList)
+            for Rule in RuleList:
+                self._rule_by_id[Rule.uuid()] = Rule
+
+            self._build_rule_by_pattern_id(RuleList)
+    
             Partition = build_partitions(RuleList)
             self._partitions.update(Partition)
 
@@ -180,34 +188,82 @@ class Framework:
 
         return engines
 
+
+    def _build_rule_by_pattern_id(self,RuleList):
+        RuleMap = {}
+        for Rule in RuleList:
+            PtnList = Rule.patterns()
+            for Ptn in PtnList:
+                RuleMap[Ptn.uuid()] = Rule
+        
+        self._rule_by_pattern_id.update(RuleMap)
+
+
     def parse_fragment(self,FragStr,partition):
         try:
             eng = self._engines[partition]
         except KeyError:
             raise ValueError(f"Ilegal partition name {partition} sent to parse_fragment")
         
-        frags = eng.parse(FragStr)
+        (Ptn,FragList) = eng.parse(FragStr)
+
+        if Ptn is None and len(FragList) == 0:
+            return None
 
         tokens = {}
-        for frag,action in frags:
+        ptnList = []
+        ptnList.append(Ptn.uuid())
+        for frag,action in FragList:
             if action.is_map():
                 tokens[action.string()] = frag
             else:
-                res = self.parse_fragment(frag,action.string())
+                Ret = self.parse_fragment(frag,action.string())
+                if Ret is None:
+                    break
+                (PtnList,res) = Ret
+                for p in PtnList:
+                    ptnList.append(p)
                 tokens.update(res)
 
-        return tokens
+        return (ptnList,tokens)
 
     def print(self):
         print("engines:")
         for _,eng in self._engines.items():
             eng.print()
 
+
+    def generate_output(self,UuidList,parse_map):
+        RuleMap = {}
+        RuleList = []
+        for uuid in UuidList:
+            R = self._rule_by_pattern_id[uuid]
+            Ruuid = R.uuid()
+            try:
+                RuleMap[Ruuid]
+            except KeyError:
+                RuleMap[Ruuid] = Ruuid
+                RuleList.append(Ruuid)
+
+        out = {}
+        if len(RuleList) == 0: 
+            pass
+        elif len(RuleList) == 1:
+            out['rule'] = RuleList[0]
+        else:
+            out['rule'] = RuleList
+
+        out['pattern'] = UuidList
+        out['tokens'] = parse_map
+
+        return out
+        
+
 def main(dir, message):
         f = Framework(dir)
-
-        res = f.parse_fragment(message, 'root:regex')
-        print('tokens: ',res)
+        (PtnList,Token) = f.parse_fragment(message, 'root:regex')
+        out = f.generate_output(PtnList,Token)
+        print(out)
 
 if __name__ == '__main__':
     if len(sys.argv) != 3: 
