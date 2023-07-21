@@ -14,8 +14,8 @@
       name: aws regex
       type: regex
       partition: aws regex
-      pattern: '^{"name":"(?P<name>[\w ]+)","value":"(?P<value>[\w ]+)"}'
+      pattern: '^{"name":"(?P<name>[\w ]+)","satisfaction":"(?P<satisfaction>[\w ]+)"}'
       map:
         name: name
-        value: value
+        satisfaction: value
 
