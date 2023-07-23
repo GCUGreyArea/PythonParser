@@ -9,7 +9,8 @@ class DuplicateUUID(Exception):
     pass
 
 class GlobalUuid:
-    _map = {}
+    def __init__(self):
+        self._map = {}
 
     def _valid_uuid(self,uuid):
         Reg = r"^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$"
