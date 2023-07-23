@@ -49,7 +49,23 @@ If no rules with patterns for the message exists, an empty map is returned.
 
 If a rule (or set of rules and patterns) exists that can parse the message, a map of `{'token name':'token value'}` is returned for the tokanized message. 
 
-The above rule, for the message `'aws: {"name":"Barry Robinson","satisfaction":"high"}'` yields the tokens `{'name': 'Barry Robinson', 'value': 'high'}`
+The above rule, for the message `'aws: {"name":"Barry Robinson","satisfaction":"high"}'` yields the output `{"rule": "bf1d64ad-9694-4317-b7a6-55e9a4915437", "pattern": ["f28a4fcc-32dd-4c4b-afd6-4aca3e4f5537", "eb4963b9-3fa5-4338-8a40-01a35fecc782"], "tokens": {"name": "Barry Robinson", "value": "high"}}`
+
+wqith `jq formating` the command `./framework.py resources/framework_two/ 'aws: {"name":"Barry Robinson","satisfaction":"high"}' | jq` will format to
+
+```json
+{
+  "rule": "bf1d64ad-9694-4317-b7a6-55e9a4915437",
+  "pattern": [
+    "f28a4fcc-32dd-4c4b-afd6-4aca3e4f5537",
+    "eb4963b9-3fa5-4338-8a40-01a35fecc782"
+  ],
+  "tokens": {
+    "name": "Barry Robinson",
+    "value": "high"
+  }
+}
+```
 
 For more details about the parser please checkout the [parser design document](parser/docs/design.md).
 
