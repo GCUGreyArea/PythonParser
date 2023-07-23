@@ -174,14 +174,14 @@ class TestParsersAndRegex(unittest.TestCase):
         self.assertEqual('barry',res['name'])
         self.assertEqual('58',res['age'])
 
-    # def test_framework_two(self):
-    #     path = get_file_path('','framework_two')
-    #     f = Framework(path)
+    def test_framework_two(self):
+        path = get_file_path('','framework_two')
+        f = Framework(path)
 
-    #     (_,res) = f.parse_fragment('aws: {"name":"Barry Robinson","satisfaction":"high"}', 'root:regex')
+        (_,res) = f.parse_fragment('aws: {"name":"Barry Robinson","satisfaction":"high"}', 'root:regex')
 
-    #     self.assertEqual('Barry Robinson',res['name'])
-    #     self.assertEqual('high',res['value'])
+        self.assertEqual('Barry Robinson',res['name'])
+        self.assertEqual('high',res['value'])
 
     def test_framwork_output(self):
         path = get_file_path('','framework_two')
